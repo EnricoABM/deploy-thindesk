@@ -235,3 +235,6 @@ target/
 
 # Eclipse
 nbactions*
+
+CHANGELOG.md
+docs/

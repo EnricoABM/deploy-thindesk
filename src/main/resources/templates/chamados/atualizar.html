@@ -12,18 +12,17 @@
         <label for="status">Status:</label>
         <select id="status" name="status" th:value="*{status}">
             <option value="ABERTO">Aberto</option>
-            <option value="EM_ANDAMENTO">Em Andamento</option>
-            <option value="CONCLUIDO">Concluído</option>
+            <option value="EM_ATENDIMENTO">Em atendimento</option>
+            <option value="AGUARDANDO_CLIENTE">Aguardando cliente</option>
+            <option value="RESOLVIDO">Resolvido</option>
+            <option value="FECHADO">Fechado</option>
         </select>
 
         <label for="tipo">Tipo:</label>
         <input type="text" id="tipo" name="tipo" th:value="*{tipo}" />
 
-        <label for="responsavel">Técnico:</label>
-        <input type="text" id="tecnico" name="tecnico" th:value="*{tecnico}" />
-        
-        <label for="responsavel">Usuário</label>
-        <input type="text" id="usuario" name="usuario" th:value="*{usuario}" />
+        <label for="tecnicoId">Técnico (id):</label>
+        <input type="text" id="tecnicoId" name="tecnicoId" th:value="*{tecnicoId}" />
 
         <button type="submit">Salvar</button>
     </form>

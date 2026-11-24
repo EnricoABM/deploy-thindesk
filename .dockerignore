@@ -1,0 +1,11 @@
+# Não enviar ao contexto de build: segredos, histórico Git, artefatos e arquivos de IDE
+.git
+.env
+.env.*
+!.env.example
+target
+.idea
+.vscode
+*.log
+docs
+CHANGELOG.md

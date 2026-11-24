@@ -1,19 +1,19 @@
-package com.pfc.thindesk.controller;
+package com.pfc.thindesk.chamados;
 
-import com.pfc.thindesk.entity.Chamado;
-import com.pfc.thindesk.service.ChamadoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 
 @RestController
 @RequestMapping("/api/chamados")
+@RequiredArgsConstructor
 public class ChamadoController {
 
-    @Autowired
-    private ChamadoService chamadoService;
+    private final ChamadoService chamadoService;
 
     @PostMapping
     public Chamado criarChamado(@RequestBody Chamado chamado) {
@@ -34,6 +34,6 @@ public class ChamadoController {
     @PostMapping("/atualizar/{id}")
     public String atualizarChamado(@PathVariable String id, @ModelAttribute Chamado chamadoAtualizado, Model model) {
         chamadoService.atualizarChamado(id, chamadoAtualizado);
-        return "redirect:/chamados"; // Redireciona para a página da lista de chamados
+        return "redirect:/chamados";
     }
 }
