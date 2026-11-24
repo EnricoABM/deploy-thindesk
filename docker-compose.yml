@@ -1,0 +1,14 @@
+# MongoDB local para desenvolvimento e testes. Producao usa MongoDB Atlas (variavel MONGO_URI).
+# Uso: docker compose up -d   |   Subir a app: sh ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+services:
+  mongo:
+    image: mongo:7
+    container_name: thindesk-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - thindesk-mongo-data:/data/db
+    restart: unless-stopped
+
+volumes:
+  thindesk-mongo-data:
