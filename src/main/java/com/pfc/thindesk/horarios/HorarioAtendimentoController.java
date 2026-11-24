@@ -1,7 +1,7 @@
-package com.pfc.thindesk.controller;
+package com.pfc.thindesk.horarios;
 
-import com.pfc.thindesk.entity.HorarioAtendimento;
-import com.pfc.thindesk.service.HorarioAtendimentoService;
+import com.pfc.thindesk.horarios.HorarioAtendimento;
+import com.pfc.thindesk.horarios.HorarioAtendimentoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,6 +1,6 @@
-package com.pfc.thindesk.repository;
+package com.pfc.thindesk.horarios;
 
-import com.pfc.thindesk.entity.HorarioAtendimento;
+import com.pfc.thindesk.horarios.HorarioAtendimento;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;

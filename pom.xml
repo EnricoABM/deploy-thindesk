@@ -4,7 +4,7 @@
 
     <groupId>com.pfc</groupId>
     <artifactId>thindesk</artifactId>
-    <version>0.1.0</version>
+    <version>0.3.0</version>
     <packaging>jar</packaging>
     <name>thindesk</name>
 
@@ -59,12 +59,20 @@
                 <configuration>
                     <mainClass>com.pfc.ThindeskApplication</mainClass>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
+                    <parameters>true</parameters>
                     <compilerArgs>
                         <arg>-Xlint:deprecation</arg>
                     </compilerArgs>

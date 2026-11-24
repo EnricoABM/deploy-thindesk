@@ -37,8 +37,8 @@
                         <td th:text="${chamado?.descricao}"></td>
                         <td th:text="${chamado?.status}"></td>
                         <td th:text="${chamado?.tipo}"></td>
-                        <td th:text="${chamado?.tecnico}"></td>
-                        <td th:text="${chamado?.usuario}"></td>
+                        <td th:text="${chamado?.tecnicoId}"></td>
+                        <td th:text="${chamado?.abertoPorId}"></td>
                         <td>
                             <a th:href="@{'/chamados/novo/'}" class="btn btn-primary btn-sm">Novo</a>
                             <a th:href="@{'/chamados/atualizar/' + ${chamado.id}}" class="btn btn-warning btn-sm">Editar</a>

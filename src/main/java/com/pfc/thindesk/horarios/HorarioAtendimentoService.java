@@ -1,7 +1,7 @@
-package com.pfc.thindesk.service;
+package com.pfc.thindesk.horarios;
 
-import com.pfc.thindesk.entity.HorarioAtendimento;
-import com.pfc.thindesk.repository.HorarioAtendimentoRepository;
+import com.pfc.thindesk.horarios.HorarioAtendimento;
+import com.pfc.thindesk.horarios.HorarioAtendimentoRepository;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
