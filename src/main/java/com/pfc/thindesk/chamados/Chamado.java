@@ -41,4 +41,9 @@ public class Chamado {
     private LocalDateTime criadoEm;
     private LocalDateTime atualizadoEm;
     private List<EventoChamado> historico = new ArrayList<>();
+
+    /** Preenchidos somente quando o chamado é cancelado. */
+    private LocalDateTime canceladoEm;
+    private String canceladoPorId;
+    private String motivoCancelamento;
 }

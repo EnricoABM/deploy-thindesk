@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <body>
+        <!--
+            Modal de confirmação de exclusão, sem justificativa. Um formulário com
+            o atributo data-confirmar abre este modal: a mensagem é preenchida pelo
+            script.js e o formulário só é enviado quando o usuário confirma.
+        -->
+        <div th:fragment="modal" class="modal fade" id="modalConfirmar" tabindex="-1" aria-labelledby="modalConfirmarLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalConfirmarLabel">Confirmar exclusão</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-0" data-mensagem></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-danger" data-acao-confirmar>Excluir</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

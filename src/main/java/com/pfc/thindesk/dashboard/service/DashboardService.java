@@ -1,10 +1,8 @@
 package com.pfc.thindesk.dashboard.service;
 
 import static com.pfc.thindesk.chamados.StatusChamado.ABERTO;
-import static com.pfc.thindesk.chamados.StatusChamado.AGUARDANDO_CLIENTE;
 import static com.pfc.thindesk.chamados.StatusChamado.EM_ATENDIMENTO;
 import static com.pfc.thindesk.chamados.StatusChamado.FECHADO;
-import static com.pfc.thindesk.chamados.StatusChamado.RESOLVIDO;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -35,7 +33,17 @@ import com.pfc.thindesk.usuarios.Perfil;
 import com.pfc.thindesk.usuarios.Usuario;
 
 /**
- * Responspável por calcular os dados da dashboard
+ * Calcula os dados da dashboard: os cards de situação e a evolução diária por
+ * status. Os dois usam o mesmo conjunto de chamados, isto é, os criados dentro
+ * do período e visíveis ao usuário.
+ * <p>
+ * Administrador vê todos os chamados; atendente vê os que abriu; técnico vê os
+ * que estão atribuídos a ele.
+ * <p>
+ * Datas de negócio (início do período, dia de cada evento) são calculadas no
+ * fuso definido em {@code thindesk.fuso-horario}. Os valores gravados pelo Spring
+ * como {@link LocalDateTime} são interpretados no fuso padrão da JVM, que é como
+ * o Spring os converte ao gravar e ao ler.
  *
  * @author Enrico Bertozzi
  */
@@ -66,6 +74,7 @@ public class DashboardService {
      *
      * @param usuario quem está vendo a dashboard
      * @param periodo período do filtro
+     *
      * @return cards e série diária prontos para a tela
      */
     public DashboardResposta montar(Usuario usuario, PeriodoFiltro periodo) {
@@ -79,49 +88,37 @@ public class DashboardService {
             janela = janela.and("tecnicoId").is(usuario.getId());
         }
 
-        List<Cartao> cartoes = cartoes(usuario.getPerfil(), janela);
-        SerieDiaria serie = serie(janela, inicio, fim);
-        return new DashboardResposta(periodo, inicio, fim, cartoes, serie);
+        return new DashboardResposta(periodo, inicio, fim, cartoes(janela), serie(janela, inicio, fim));
     }
 
     /**
-     * Define os cards de cada perfil.
-     * <ul>
-     * <li>Administrador: Abertos, Em andamento e Finalizados.</li>
-     * <li>Técnico: Em aberto (qualquer status diferente de FECHADO) e Finalizados.</li>
-     * <li>Atendente: Em aberto (diferente de FECHADO), Realizados (RESOLVIDO) e Fechados.</li>
-     * </ul>
+     * Define os três cards, iguais para todos os perfis: Em aberto (ABERTO),
+     * Em atendimento (EM_ATENDIMENTO) e Fechados (FECHADO). Chamados cancelados
+     * não entram em nenhum card.
      *
-     * @param perfil perfil do usuário
      * @param janela critério de período e escopo
+     *
      * @return cards na ordem de exibição
      */
-    private List<Cartao> cartoes(Perfil perfil, Criteria janela) {
-        return switch (perfil) {
-            case ADMINISTRADOR -> List.of(
-                    cartao("Abertos", janela, em(ABERTO)),
-                    cartao("Em andamento", janela, em(EM_ATENDIMENTO, AGUARDANDO_CLIENTE, RESOLVIDO)),
-                    cartao("Finalizados", janela, em(FECHADO)));
-            case TECNICO -> List.of(
-                    cartao("Em aberto", janela, diferenteDe(FECHADO)),
-                    cartao("Finalizados", janela, em(FECHADO)));
-            case ATENDENTE -> List.of(
-                    cartao("Em aberto", janela, diferenteDe(FECHADO)),
-                    cartao("Realizados", janela, em(RESOLVIDO)),
-                    cartao("Fechados", janela, em(FECHADO)));
-        };
+    private List<Cartao> cartoes(Criteria janela) {
+        return List.of(
+                cartao("Em aberto", janela, ABERTO),
+                cartao("Em atendimento", janela, EM_ATENDIMENTO),
+                cartao("Fechados", janela, FECHADO));
     }
 
     /**
-     * Conta os chamados da janela que atendem a um filtro de status.
+     * Conta os chamados da janela em um status.
      *
-     * @param rotulo       texto do card
-     * @param janela       critério de período e escopo
-     * @param filtroStatus critério de status
+     * @param rotulo texto do card
+     * @param janela critério de período e escopo
+     * @param status status contado
+     *
      * @return card com a contagem
      */
-    private Cartao cartao(String rotulo, Criteria janela, Criteria filtroStatus) {
-        return new Cartao(rotulo, repository.contar(new Criteria().andOperator(janela, filtroStatus)));
+    private Cartao cartao(String rotulo, Criteria janela, StatusChamado status) {
+        long valor = repository.contar(new Criteria().andOperator(janela, Criteria.where("status").is(status)));
+        return new Cartao(rotulo, valor);
     }
 
     /**
@@ -132,6 +129,7 @@ public class DashboardService {
      * @param janela critério de período e escopo
      * @param inicio primeiro dia do período
      * @param fim    último dia do período
+     *
      * @return datas e uma linha por status
      */
     private SerieDiaria serie(Criteria janela, LocalDate inicio, LocalDate fim) {
@@ -154,14 +152,13 @@ public class DashboardService {
                 if (dia.isBefore(diaCriacao)) {
                     continue;
                 }
-                long[] contagem = contagens.get(statusEm(marcos, dia));
-                contagem[i]++;
+                contagens.get(statusEm(marcos, dia))[i]++;
             }
         }
 
         List<String> datas = dias.stream().map(d -> d.format(DIA_MES)).toList();
         List<LinhaStatus> linhas = Arrays.stream(StatusChamado.values())
-                .map(status -> new LinhaStatus(status.getRotulo(),
+                .map(status -> new LinhaStatus(status.name(), status.getRotulo(),
                         Arrays.stream(contagens.get(status)).boxed().toList()))
                 .toList();
         return new SerieDiaria(datas, linhas);
@@ -171,8 +168,9 @@ public class DashboardService {
      * Lista as mudanças de status de um chamado em ordem cronológica, começando
      * pelo status inicial na data de criação.
      *
-     * @param chamado     chamado com histórico
-     * @param diaCriacao  dia em que o chamado foi criado
+     * @param chamado    chamado com histórico
+     * @param diaCriacao dia em que o chamado foi criado
+     *
      * @return marcos ordenados por dia
      */
     private List<Marco> marcos(Chamado chamado, LocalDate diaCriacao) {
@@ -194,6 +192,7 @@ public class DashboardService {
      *
      * @param marcos marcos do chamado, ordenados por dia
      * @param dia    dia consultado
+     *
      * @return status vigente ao fim do dia
      */
     private static StatusChamado statusEm(List<Marco> marcos, LocalDate dia) {
@@ -211,6 +210,7 @@ public class DashboardService {
      * Converte o início do período para o valor gravado no banco.
      *
      * @param dia primeiro dia do período
+     *
      * @return meia-noite do dia no fuso configurado, expressa no fuso da JVM
      */
     private LocalDateTime paraArmazenado(LocalDate dia) {
@@ -221,33 +221,19 @@ public class DashboardService {
      * Converte um valor gravado no banco para o dia correspondente no fuso configurado.
      *
      * @param valor data e hora gravada
+     *
      * @return dia no fuso configurado
      */
     private LocalDate diaDoArmazenado(LocalDateTime valor) {
         return ZonedDateTime.of(valor, ZoneId.systemDefault()).withZoneSameInstant(fusoHorario).toLocalDate();
     }
 
-    /** Dia em que um chamado passou a ter um status. */
+    /**
+     * Dia em que um chamado passou a ter um status.
+     *
+     * @param dia    dia da mudança
+     * @param status status a partir desse dia
+     */
     private record Marco(LocalDate dia, StatusChamado status) {
-    }
-
-    /**
-     * Status que agrupa os cards de "em andamento" do administrador.
-     *
-     * @param status lista de status
-     * @return critério que aceita qualquer um deles
-     */
-    private static Criteria em(StatusChamado... status) {
-        return Criteria.where("status").in((Object[]) status);
-    }
-
-    /**
-     * Critério que aceita qualquer status diferente do informado.
-     *
-     * @param status status excluído
-     * @return critério de status
-     */
-    private static Criteria diferenteDe(StatusChamado status) {
-        return Criteria.where("status").ne(status);
     }
 }
