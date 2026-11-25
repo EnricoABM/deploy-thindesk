@@ -1,40 +1,29 @@
 package com.pfc.thindesk.usuarios;
 
-import java.util.List;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.pfc.thindesk.usuarios.exception.UsuarioNaoEncontradoException;
+
 import lombok.RequiredArgsConstructor;
 
 /**
- * Service para consulta de usuários
+ * Service para carregamento dos usuários para Spring Security
  * 
- * @author Enrico Bertozzi
+ * @author
  */
 @Service
 @RequiredArgsConstructor
 public class UsuarioDetailsService implements UserDetailsService {
 
-    private final UsuarioService usuarioService;
+        private final UsuarioService usuarioService;
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Usuario usuario = usuarioService.encontrarPorUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
-
-        List<GrantedAuthority> authorities =
-                List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getPerfil().name()));
-
-        return User.withUsername(usuario.getUsername())
-                .password(usuario.getSenha())
-                .authorities(authorities)
-                .disabled(!usuario.isAtivo())
-                .build();
-    }
+        @Override
+        public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+                Usuario usuario = usuarioService.encontrarPorUsername(username)
+                                .orElseThrow(UsuarioNaoEncontradoException::new);
+                return usuario;
+        }
 }

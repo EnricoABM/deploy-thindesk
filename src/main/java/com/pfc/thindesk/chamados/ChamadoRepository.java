@@ -10,5 +10,7 @@ public interface ChamadoRepository extends MongoRepository<Chamado, String> {
 
     List<Chamado> findByTecnicoId(String tecnicoId);
 
+    List<Chamado> findByTecnicoIdIsNull();
+
     List<Chamado> findByStatusAndTecnicoIdIsNull(StatusChamado status);
 }

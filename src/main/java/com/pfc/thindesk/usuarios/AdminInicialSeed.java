@@ -22,7 +22,7 @@ public class AdminInicialSeed implements ApplicationRunner {
     @Value("${thindesk.admin.usuario:admin}")
     private String username;
 
-    @Value("${thindesk.admin.senha-inicial:}")
+    @Value("${thindesk.admin.senha-inicial}")
     private String senhaInicial;
 
     @Override
@@ -34,7 +34,12 @@ public class AdminInicialSeed implements ApplicationRunner {
             log.warn("ADMIN_SENHA_INICIAL não definida: administrador '{}' não foi criado.", username);
             return;
         }
-        usuarioService.criarUsuario(username, "Administrador", Perfil.ADMINISTRADOR, senhaInicial);
+        Usuario admin = new Usuario();
+        admin.setUsername(username);
+        admin.setNome("Administrador");
+        admin.setPerfil(Perfil.ADMINISTRADOR);
+        admin.setPassword(senhaInicial);
+        usuarioService.criarUsuario(admin);
         log.info("Administrador inicial '{}' criado.", username);
     }
 }
