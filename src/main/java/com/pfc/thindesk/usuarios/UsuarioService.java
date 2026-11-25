@@ -10,6 +10,8 @@ import java.util.regex.Pattern;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.pfc.thindesk.usuarios.exception.UsuarioNaoExcluivelException;
+
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -95,6 +97,25 @@ public class UsuarioService {
             usuario.setPassword(passwordEncoder.encode(senhaNova));
         }
         return usuarioRepository.save(usuario);
+    }
+
+    /**
+     * Remove um usuário. Não permite excluir a própria conta nem o último administrador.
+     * 
+     * @param id identificador do usuário a remover
+     * @param idSolicitante identificador do administrador logado
+     */
+    public void excluirUsuario(String id, String idSolicitante) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
+        if (usuario.getId().equals(idSolicitante)) {
+            throw new UsuarioNaoExcluivelException("Você não pode excluir a própria conta");
+        }
+        if (usuario.getPerfil() == Perfil.ADMINISTRADOR
+                && listarPorPerfil(Perfil.ADMINISTRADOR).size() <= 1) {
+            throw new UsuarioNaoExcluivelException("Não é possível excluir o último administrador");
+        }
+        usuarioRepository.delete(usuario);
     }
 
     /**

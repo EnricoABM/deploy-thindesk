@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title th:text="'Chamado: ' + ${chamado.titulo}">Chamado</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+        <link rel="stylesheet" th:href="@{/css/style.css}">
+    </head>
+
+    <body>
+        <aside>
+            <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        </aside>
+
+        <div class="toggle-btn btn btn-dark d-md-none">
+            <span>&#9776;</span>
+        </div>
+
+        <div class="container mt-4">
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <h1 th:text="${chamado.titulo}">Chamado</h1>
+                <a th:href="@{/chamados}" class="btn btn-outline-secondary">Voltar à lista</a>
+            </div>
+
+            <div th:if="${sucesso}" class="alert alert-success mt-3" th:text="${sucesso}"></div>
+            <div th:if="${erro}" class="alert alert-danger mt-3" th:text="${erro}"></div>
+
+            <div class="d-flex gap-2 mt-3 mb-4">
+                <form th:if="${podeAssumir}" th:action="@{'/chamados/' + ${chamado.id} + '/assumir'}" method="post">
+                    <button type="submit" class="btn btn-success">Assumir chamado</button>
+                </form>
+                <a th:if="${podeEditar}" th:href="@{'/chamados/' + ${chamado.id} + '/editar'}" class="btn btn-warning">Editar</a>
+            </div>
+
+            <div class="d-flex flex-column gap-4">
+                <div class="d-flex flex-row flex-wrap align-items-start gap-4">
+                    <dl class="mb-0" style="flex: 1 1 420px; min-width: 0; display: grid; grid-template-columns: max-content 1fr; gap: 0.5rem 1.5rem;">
+                        <dt>Status</dt>
+                        <dd th:text="${chamado.status.rotulo}"></dd>
+                        <dt>Prioridade</dt>
+                        <dd th:text="${chamado.prioridade.rotulo}"></dd>
+                        <dt>Tipo</dt>
+                        <dd th:text="${chamado.tipo}"></dd>
+                        <dt>Cliente</dt>
+                        <dd th:text="${chamado.clienteId != null ? nomes.get(chamado.clienteId) : '-'}"></dd>
+                        <dt>Aberto por</dt>
+                        <dd th:text="${chamado.abertoPorId != null ? nomes.get(chamado.abertoPorId) : '-'}"></dd>
+                        <dt>Técnico</dt>
+                        <dd th:text="${chamado.tecnicoId != null ? nomes.get(chamado.tecnicoId) : 'Sem técnico'}"></dd>
+                        <dt>Criado em</dt>
+                        <dd th:text="${#temporals.format(chamado.criadoEm, 'dd/MM/yyyy HH:mm')}"></dd>
+                        <dt>Atualizado em</dt>
+                        <dd th:text="${#temporals.format(chamado.atualizadoEm, 'dd/MM/yyyy HH:mm')}"></dd>
+                        <dt>Descrição</dt>
+                        <dd style="white-space: pre-line;" th:text="${chamado.descricao}"></dd>
+                    </dl>
+
+                <div th:if="${podeGerenciar and !#lists.isEmpty(destinos)}" class="card" style="flex: 0 0 360px; max-width: 100%;">
+                        <div class="card-body">
+                            <h5 class="card-title">Alterar status</h5>
+                            <form th:action="@{'/chamados/' + ${chamado.id} + '/status'}" method="post">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Novo status</label>
+                                    <select id="status" name="status" class="form-select" required>
+                                        <option th:each="s : ${destinos}" th:value="${s.name()}" th:text="${s.rotulo}"></option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="comentario" class="form-label">Comentário</label>
+                                    <textarea id="comentario" name="comentario" class="form-control" rows="2" maxlength="500"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Salvar status</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column">
+                    <h4>Histórico</h4>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Quando</th>
+                                <th>Autor</th>
+                                <th>De</th>
+                                <th>Para</th>
+                                <th>Comentário</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(chamado.historico)}">
+                                <td colspan="5" class="text-center text-muted">Nenhuma alteração registrada.</td>
+                            </tr>
+                            <tr th:each="e : ${chamado.historico}">
+                                <td th:text="${#temporals.format(e.quando, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td th:text="${e.autorId != null ? nomes.get(e.autorId) : '-'}"></td>
+                                <td th:text="${e.statusAnterior != null ? e.statusAnterior.rotulo : '-'}"></td>
+                                <td th:text="${e.statusNovo.rotulo}"></td>
+                                <td th:text="${e.comentario}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script th:src="@{/js/script.js}"></script>
+    </body>
+</html>

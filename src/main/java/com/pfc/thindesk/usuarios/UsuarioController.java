@@ -3,6 +3,7 @@ package com.pfc.thindesk.usuarios;
 import java.util.NoSuchElementException;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.pfc.thindesk.usuarios.dto.UsuarioForm;
+import com.pfc.thindesk.usuarios.exception.UsuarioNaoExcluivelException;
 import com.pfc.thindesk.usuarios.dto.UsuarioResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -34,11 +36,13 @@ public class UsuarioController {
     @GetMapping
     public String listar(@RequestParam(required = false) String q,
             @RequestParam(required = false) String perfil,
+            @AuthenticationPrincipal Usuario logado,
             Model model) {
         Perfil filtro = perfilOuNulo(perfil);
         model.addAttribute("usuarios", usuarioService.filtrar(q, filtro).stream()
                 .map(UsuarioResponse::de)
                 .toList());
+        model.addAttribute("usuarioLogadoId", logado.getId());
         model.addAttribute("q", q == null ? "" : q);
         model.addAttribute("perfilFiltro", filtro == null ? "" : filtro.name());
         model.addAttribute("perfisFiltro", Perfil.values());
@@ -94,6 +98,27 @@ public class UsuarioController {
             model.addAttribute("erro", e.getMessage());
             return "usuario-form";
         }
+    }
+
+    /**
+     * Remove um usuário pelo id, exceto a própria conta e o último administrador.
+     * 
+     * @param id identificador do usuário
+     * @param logado administrador logado
+     * @param redirect mensagem de sucesso ou falha
+     * 
+     * @return redirecionamento para a lista
+     */
+    @PostMapping("/{id}/excluir")
+    public String excluir(@PathVariable String id, @AuthenticationPrincipal Usuario logado,
+            RedirectAttributes redirect) {
+        try {
+            usuarioService.excluirUsuario(id, logado.getId());
+            redirect.addFlashAttribute("sucesso", "Usuário removido.");
+        } catch (NoSuchElementException | UsuarioNaoExcluivelException e) {
+            redirect.addFlashAttribute("erro", e.getMessage());
+        }
+        return "redirect:/usuarios";
     }
 
     /** Preenche o formulário compartilhado entre cadastro e edição. */
