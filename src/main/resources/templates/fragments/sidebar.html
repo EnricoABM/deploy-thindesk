@@ -26,11 +26,6 @@
                             <i class="bi bi-people"></i> <span class="d-none d-md-inline">Usuários</span>
                         </a>
                     </li>
-                    <li class="nav-item" sec:authorize="hasRole('ADMINISTRADOR')">
-                        <a class="nav-link" th:href="@{/ajustes-horarios}">
-                            <i class="bi bi-alarm"></i> <span class="d-none d-md-inline">Horário de Atendimento</span>
-                        </a>
-                    </li>
                 </ul>
                 <form th:action="@{/logout}" method="post" class="mt-auto px-3 py-3">
                     <button type="submit" class="btn btn-outline-light btn-sm w-100">
