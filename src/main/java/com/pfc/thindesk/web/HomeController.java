@@ -10,8 +10,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.pfc.thindesk.chamados.ChamadoService;
 import com.pfc.thindesk.chamados.dto.ChamadoResponse;
-import com.pfc.thindesk.clientes.ClienteService;
-import com.pfc.thindesk.clientes.dto.ClienteResponse;
 import com.pfc.thindesk.usuarios.Usuario;
 
 import lombok.RequiredArgsConstructor;
@@ -23,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 public class HomeController {
 
     private final ChamadoService chamadoService;
-    private final ClienteService clienteService;
 
     @GetMapping("/")
     public ModelAndView home() {
@@ -44,17 +41,5 @@ public class HomeController {
         log.info("Carregando fragmento: {}", fragment);
         model.addAttribute("content", fragment);
         return "chamados";
-    }
-
-    @GetMapping("/clientes")
-    public String clientes(Model model) {
-        List<ClienteResponse> clientes = clienteService.listarClientes().stream()
-                .map(ClienteResponse::de)
-                .toList();
-        model.addAttribute("clientes", clientes);
-        String fragment = "clientes :: content";
-        log.info("Carregando fragmento: {}", fragment);
-        model.addAttribute("content", fragment);
-        return "clientes";
     }
 }

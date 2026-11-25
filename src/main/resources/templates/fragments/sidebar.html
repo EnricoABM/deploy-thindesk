@@ -22,37 +22,14 @@
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="hasRole('ADMINISTRADOR')">
-                        <a class="nav-link" href="#" onclick="toggleSubmenu(event, this)">
-                            Configurações
-                            <span class="float-end">&#9662;</span> <!-- Setinha -->
+                        <a class="nav-link" th:href="@{/usuarios}">
+                            <i class="bi bi-people"></i> <span class="d-none d-md-inline">Usuários</span>
                         </a>
-                        <ul class="nav flex-column submenu">
-                            <li class="nav-item">
-                                <a class="nav-link" th:href="@{/usuarios}">
-                                    <i class="bi bi-people"></i> <span class="d-none d-md-inline">Usuários</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" th:href="@{/tecnicos}">
-                                    <i class="bi bi-person"></i> <span class="d-none d-md-inline">Técnicos</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" th:href="@{/tipo-chamado}">
-                                    <i class="bi bi-megaphone"></i> <span class="d-none d-md-inline">Tipo de Chamado</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" th:href="@{/ajustes-horarios}">
-                                    <i class="bi bi-alarm"></i> <span class="d-none d-md-inline">Horário de Atendimento</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" th:href="@{/recursos}">
-                                    <i class="bi bi-screwdriver"></i> <span class="d-none d-md-inline">Recursos</span>
-                                </a>
-                            </li>
-                        </ul>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMINISTRADOR')">
+                        <a class="nav-link" th:href="@{/ajustes-horarios}">
+                            <i class="bi bi-alarm"></i> <span class="d-none d-md-inline">Horário de Atendimento</span>
+                        </a>
                     </li>
                 </ul>
                 <form th:action="@{/logout}" method="post" class="mt-auto px-3 py-3">

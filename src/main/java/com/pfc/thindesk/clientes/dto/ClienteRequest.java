@@ -16,6 +16,15 @@ public class ClienteRequest {
     private String telefone;
     private String setor;
 
+    /** Cria o formulário a partir de um cliente existente. @param cliente cliente a editar @return formulário preenchido */
+    public static ClienteRequest de(Cliente cliente) {
+        ClienteRequest request = new ClienteRequest();
+        request.setNome(cliente.getNome());
+        request.setTelefone(cliente.getTelefone());
+        request.setSetor(cliente.getSetor());
+        return request;
+    }
+
     public Cliente paraEntidade() {
         Cliente cliente = new Cliente();
         cliente.setNome(nome);
