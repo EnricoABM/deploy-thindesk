@@ -1,3 +1,6 @@
+# Ambiente completo local: MongoDB 7 + aplicação (build a partir do Dockerfile).
+# Uso: docker compose up -d --build   |   Parar: docker compose down
+# Senha do administrador inicial: ADMIN_SENHA_INICIAL (variável de ambiente ou .env)
 services:
   mongo:
     image: mongo:7
@@ -6,6 +9,25 @@ services:
       - "27017:27017"
     volumes:
       - thindesk-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: thindesk-app
+    ports:
+      - "8080:8080"
+    environment:
+      # Aponta para o contêiner do MongoDB, sobrescrevendo o Atlas do .env
+      MONGO_URI: mongodb://mongo:27017/thindesk
+      ADMIN_SENHA_INICIAL: ${ADMIN_SENHA_INICIAL:-}
+    depends_on:
+      mongo:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
