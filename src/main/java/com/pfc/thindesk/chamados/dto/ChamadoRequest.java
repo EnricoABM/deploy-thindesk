@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Dados recebidos para abrir ou alterar um chamado (JSON). Campos nulos não sobrescrevem
- * valores existentes na alteração; na abertura, a prioridade nula vira MÉDIA no service.
+ * Dados recebidos para abrir ou alterar um chamado
  */
 @Getter
 @Setter
@@ -24,6 +23,21 @@ public class ChamadoRequest {
     private StatusChamado status;
     private String clienteId;
     private String tecnicoId;
+
+    /**
+     * Cria o formulário de edição a partir de um chamado existente.
+     * 
+     * @param chamado chamado a editar
+     * @return formulário preenchido
+     */
+    public static ChamadoRequest de(Chamado chamado) {
+        ChamadoRequest request = new ChamadoRequest();
+        request.setTitulo(chamado.getTitulo());
+        request.setDescricao(chamado.getDescricao());
+        request.setTipo(chamado.getTipo());
+        request.setPrioridade(chamado.getPrioridade());
+        return request;
+    }
 
     public Chamado paraEntidade() {
         Chamado chamado = new Chamado();

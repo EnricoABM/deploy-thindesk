@@ -73,6 +73,11 @@
                             <a th:if="${u.editavel}"
                                th:href="@{'/usuarios/' + ${u.id} + '/editar'}"
                                class="btn btn-warning btn-sm">Editar</a>
+                            <form th:if="${u.id != usuarioLogadoId}" th:action="@{'/usuarios/' + ${u.id} + '/excluir'}"
+                                  method="post" class="d-inline"
+                                  onsubmit="return confirm('Remover este usuário?');">
+                                <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                            </form>
                         </td>
                     </tr>
                 </tbody>
