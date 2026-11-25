@@ -77,7 +77,20 @@ public class ChamadoService {
         };
     }
 
+    /**
+     * Atualiza os dados, o técnico e o status do chamado, conforme o perfil. O
+     * cancelamento não passa por aqui: use {@link #cancelar(String, Usuario, String)}.
+     *
+     * @param id      identificador do chamado
+     * @param dados   valores pedidos, nulos não alteram
+     * @param usuario usuário logado
+     *
+     * @return chamado salvo
+     */
     public Chamado atualizarChamado(String id, Chamado dados, Usuario usuario) {
+        if (dados.getStatus() == StatusChamado.CANCELADO) {
+            throw new ChamadoInvalidoException("Use o cancelamento para cancelar o chamado");
+        }
         Chamado chamado = buscarPorId(id);
 
         if (!podeAlterar(chamado, dados, usuario)) {
@@ -251,20 +264,73 @@ public class ChamadoService {
         if (novo == null) {
             throw new ChamadoInvalidoException("Status é obrigatório");
         }
+        if (novo == StatusChamado.CANCELADO) {
+            throw new ChamadoInvalidoException("Use o cancelamento para cancelar o chamado");
+        }
         String motivo = comentario == null || comentario.isBlank() ? "Atualização de status" : comentario.trim();
         alterarStatus(chamado, novo, usuario.getId(), motivo);
         return chamadoRepository.save(chamado);
     }
 
+    /**
+     * Cancela o chamado com justificativa. Atendente cancela só os chamados que
+     * abriu; administrador cancela qualquer chamado. A justificativa é obrigatória,
+     * com 10 a 500 caracteres, e fica no histórico e nos campos de cancelamento.
+     *
+     * @param id      identificador do chamado
+     * @param usuario usuário logado
+     * @param motivo  justificativa do cancelamento
+     *
+     * @return chamado cancelado e salvo
+     */
+    public Chamado cancelar(String id, Usuario usuario, String motivo) {
+        Chamado chamado = buscarVisivel(id, usuario);
+        if (!podeCancelar(chamado, usuario)) {
+            throw new AccessDeniedException("Sem permissão para cancelar este chamado");
+        }
+        String justificativa = texto(motivo, "Justificativa", 10, 500);
+
+        LocalDateTime agora = LocalDateTime.now();
+        alterarStatus(chamado, StatusChamado.CANCELADO, usuario.getId(), justificativa);
+        chamado.setCanceladoEm(agora);
+        chamado.setCanceladoPorId(usuario.getId());
+        chamado.setMotivoCancelamento(justificativa);
+        return chamadoRepository.save(chamado);
+    }
+
+    /**
+     * Indica se o usuário pode cancelar o chamado. Vale para chamados ainda ABERTO
+     * ou EM_ATENDIMENTO, sem técnico exigido.
+     *
+     * @param chamado chamado consultado
+     * @param usuario usuário logado
+     *
+     * @return verdadeiro se pode cancelar
+     */
+    public boolean podeCancelar(Chamado chamado, Usuario usuario) {
+        if (!podeIr(chamado.getStatus(), StatusChamado.CANCELADO)) {
+            return false;
+        }
+        return switch (usuario.getPerfil()) {
+            case ADMINISTRADOR -> true;
+            case ATENDENTE -> usuario.getId().equals(chamado.getAbertoPorId());
+            case TECNICO -> false;
+        };
+    }
+
 
     /** 
      * Lista os status para os quais o chamado pode ir a partir do atual. 
+     * O cancelamento não aparece aqui: ele tem ação própria.
      * 
      * @param atual status atual do chamado 
      * 
      * @return status permitidos */
     public List<StatusChamado> proximosStatus(StatusChamado atual) {
-        return Arrays.stream(StatusChamado.values()).filter(s -> podeIr(atual, s)).toList();
+        return Arrays.stream(StatusChamado.values())
+                .filter(s -> s != StatusChamado.CANCELADO)
+                .filter(s -> podeIr(atual, s))
+                .toList();
     }
      
     /** 
@@ -406,14 +472,21 @@ public class ChamadoService {
         };
     }
 
-    /** Matriz de transições permitidas entre status. */
+    /**
+     * Matriz de transições permitidas entre status: ABERTO vai para EM_ATENDIMENTO
+     * ou CANCELADO; EM_ATENDIMENTO vai para FECHADO ou CANCELADO; FECHADO e
+     * CANCELADO não têm saída.
+     *
+     * @param de   status atual
+     * @param para status pedido
+     *
+     * @return verdadeiro se a transição é permitida
+     */
     private boolean podeIr(StatusChamado de, StatusChamado para) {
         return switch (de) {
-            case ABERTO -> para == StatusChamado.EM_ATENDIMENTO;
-            case EM_ATENDIMENTO -> para == StatusChamado.AGUARDANDO_CLIENTE || para == StatusChamado.RESOLVIDO;
-            case AGUARDANDO_CLIENTE -> para == StatusChamado.EM_ATENDIMENTO || para == StatusChamado.RESOLVIDO;
-            case RESOLVIDO -> para == StatusChamado.FECHADO || para == StatusChamado.EM_ATENDIMENTO;
-            case FECHADO -> false;
+            case ABERTO -> para == StatusChamado.EM_ATENDIMENTO || para == StatusChamado.CANCELADO;
+            case EM_ATENDIMENTO -> para == StatusChamado.FECHADO || para == StatusChamado.CANCELADO;
+            case FECHADO, CANCELADO -> false;
         };
     }
 }

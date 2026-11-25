@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pfc.thindesk.chamados.dto.CancelamentoRequest;
 import com.pfc.thindesk.chamados.dto.ChamadoRequest;
 import com.pfc.thindesk.chamados.dto.ChamadoResponse;
 import com.pfc.thindesk.usuarios.Usuario;
@@ -36,6 +37,22 @@ public class ChamadoController {
     @GetMapping
     public List<ChamadoResponse> listarChamados(@AuthenticationPrincipal Usuario usuario) {
         return chamadoService.listarVisiveis(usuario).stream().map(ChamadoResponse::de).toList();
+    }
+
+    /**
+     * Cancela um chamado pela API, com justificativa obrigatória.
+     *
+     * @param id      identificador do chamado
+     * @param request justificativa do cancelamento
+     * @param usuario usuário logado
+     *
+     * @return chamado cancelado
+     */
+    @PostMapping("/{id}/cancelamento")
+    @PreAuthorize("hasAnyRole('ATENDENTE','ADMINISTRADOR')")
+    public ChamadoResponse cancelarChamado(@PathVariable String id, @RequestBody CancelamentoRequest request,
+            @AuthenticationPrincipal Usuario usuario) {
+        return ChamadoResponse.de(chamadoService.cancelar(id, usuario, request.getMotivo()));
     }
 
     @PutMapping("/{id}")

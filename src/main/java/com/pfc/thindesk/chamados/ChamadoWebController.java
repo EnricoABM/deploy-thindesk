@@ -130,6 +130,7 @@ public class ChamadoWebController {
             model.addAttribute("podeGerenciar", chamadoService.podeGerenciar(chamado, usuario));
             model.addAttribute("podeEditar", chamadoService.podeEditar(chamado, usuario));
             model.addAttribute("podeAssumir", chamadoService.podeAssumir(chamado, usuario));
+            model.addAttribute("podeCancelar", chamadoService.podeCancelar(chamado, usuario));
             model.addAttribute("destinos", chamadoService.proximosStatus(chamado.getStatus()));
             return "chamado-detalhe";
         } catch (NoSuchElementException e) {
@@ -226,6 +227,23 @@ public class ChamadoWebController {
         return executar(id, redirect,
                 () -> chamadoService.mudarStatus(id, form.getStatus(), usuario, form.getComentario()),
                 "Status alterado.");
+    }
+
+    /**
+     * Cancela o chamado com a justificativa informada.
+     *
+     * @param id       identificador do chamado
+     * @param motivo   justificativa obrigatória, de 10 a 500 caracteres
+     * @param usuario  usuário logado
+     * @param redirect mensagem de sucesso ou falha
+     *
+     * @return redirecionamento ao detalhe
+     */
+    @PostMapping("/{id}/cancelar")
+    @PreAuthorize("hasAnyRole('ATENDENTE','ADMINISTRADOR')")
+    public String cancelar(@PathVariable String id, @RequestParam(required = false) String motivo,
+            @AuthenticationPrincipal Usuario usuario, RedirectAttributes redirect) {
+        return executar(id, redirect, () -> chamadoService.cancelar(id, usuario, motivo), "Chamado cancelado.");
     }
 
     /**
