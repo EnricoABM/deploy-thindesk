@@ -1,16 +1,16 @@
 package com.pfc.thindesk.horarios;
 
-import com.pfc.thindesk.horarios.HorarioAtendimento;
-import com.pfc.thindesk.horarios.HorarioAtendimentoRepository;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class HorarioAtendimentoService {
 
-    @Autowired
-    private HorarioAtendimentoRepository horarioAtendimentoRepository;
+    private final HorarioAtendimentoRepository horarioAtendimentoRepository;
 
     public List<HorarioAtendimento> listarTodos() {
         return horarioAtendimentoRepository.findAll();

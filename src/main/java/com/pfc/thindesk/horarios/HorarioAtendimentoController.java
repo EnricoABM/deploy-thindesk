@@ -1,32 +1,40 @@
 package com.pfc.thindesk.horarios;
 
-import com.pfc.thindesk.horarios.HorarioAtendimento;
-import com.pfc.thindesk.horarios.HorarioAtendimentoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
-@RequestMapping("/api/ajustes-horarios")
+import com.pfc.thindesk.horarios.dto.HorarioForm;
+import com.pfc.thindesk.horarios.dto.HorarioResponse;
+
+import lombok.RequiredArgsConstructor;
+
+/** Ajuste de horários de atendimento. Restrito ao administrador. */
+@Controller
+@RequestMapping("/ajustes-horarios")
+@PreAuthorize("hasRole('ADMINISTRADOR')")
+@RequiredArgsConstructor
 public class HorarioAtendimentoController {
 
-    @Autowired
-    private HorarioAtendimentoService horarioAtendimentoService;
+    private final HorarioAtendimentoService horarioAtendimentoService;
 
     @GetMapping
-    public String listarHorarios(Model model) {
-        model.addAttribute("horarios", horarioAtendimentoService.listarTodos());
+    public String pagina(Model model) {
+        model.addAttribute("horarios", horarioAtendimentoService.listarTodos().stream()
+                .map(HorarioResponse::de)
+                .toList());
+        model.addAttribute("novoHorario", new HorarioForm());
         return "ajustes-horarios";
     }
 
     @PostMapping("/salvar")
-    public String salvarHorario(@ModelAttribute HorarioAtendimento horarioAtendimento) {
-        horarioAtendimentoService.salvar(horarioAtendimento);
+    public String salvarHorario(@ModelAttribute HorarioForm form) {
+        horarioAtendimentoService.salvar(form.paraEntidade());
         return "redirect:/ajustes-horarios";
     }
 
