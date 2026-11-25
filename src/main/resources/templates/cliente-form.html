@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title th:text="${modoEdicao} ? 'Editar cliente' : 'Novo cliente'">Novo cliente</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+        <link rel="stylesheet" th:href="@{/css/style.css}">
+    </head>
+
+    <body>
+        
+        <aside>
+            <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        </aside>
+
+        <div class="toggle-btn btn btn-dark d-md-none">
+            <span>&#9776;</span>
+        </div>
+
+        <div class="container mt-4">
+            <h1 class="mt-4" th:text="${modoEdicao} ? 'Editar cliente' : 'Novo cliente'">Novo cliente</h1>
+
+            <div th:if="${erro}" class="alert alert-danger mt-3" th:text="${erro}"></div>
+
+            <form th:action="@{${acao}}" th:object="${form}" method="post" class="mt-3" style="max-width: 560px;">
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome</label>
+                    <input type="text" id="nome" name="nome" class="form-control" required minlength="3" maxlength="100" th:value="*{nome}">
+                </div>
+                <div class="mb-3">
+                    <label for="telefone" class="form-label">Telefone</label>
+                    <input type="tel" id="telefone" name="telefone" class="form-control" required th:value="*{telefone}" placeholder="(11) 99999-9999">
+                    <div class="form-text">Informe o DDD. São aceitos 10 ou 11 dígitos.</div>
+                </div>
+                <div class="mb-4">
+                    <label for="setor" class="form-label">Setor</label>
+                    <input type="text" id="setor" name="setor" class="form-control" required maxlength="60" th:value="*{setor}">
+                </div>
+                <button type="submit" class="btn btn-primary" th:text="${modoEdicao} ? 'Salvar alterações' : 'Cadastrar'">Cadastrar</button>
+                <a th:href="@{/clientes}" class="btn btn-outline-secondary">Cancelar</a>
+            </form>
+        </div>
+        <script th:src="@{/js/script.js}"></script>
+    </body>
+</html>
